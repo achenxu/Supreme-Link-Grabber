@@ -28,7 +28,12 @@ soup = BeautifulSoup(r.content, 'html.parser')
 
 categories = soup.find_all('a')
 categories = [s.text.encode('utf-8') for s in categories]
-categories = categories[categories.index('new') + 1:categories.index('sold out')]
+categories = categories[categories.index('new') + 1:]
+try:
+	categories = categories[:categories.index('sold out')]
+	categories = categories[:categories.index('')]
+except:
+	pass
 if categories == []:
 	categories = ['jackets', 'shirts', 'tops/sweaters', 'sweatshirts', 'pants', 'hats', 'bags', 'accessories', 'shoes', 'skate']
 choices = list(range(1,len(categories) + 1))
@@ -45,7 +50,8 @@ else:
 	category_link = 'http://www.supremenewyork.com/shop/all/{}'.format(category)
 print ''
 new = raw_input('New Items Only? (y/n): ').lower()
-keywords = raw_input('Keyword(s): ').split(', ')
+keywords = raw_input('Keyword(s): ').split(',')
+keywords = [x.replace(' ', '') for x in keywords]
 browser = raw_input('Open Link(s) in Browser? (y/n): ').lower()
 print ''
 
@@ -102,5 +108,5 @@ while matching_titles == []:
 				print 'Opening link in browser...'
 				webbrowser.open(matching_links[i])
 	else:
-		print 'No items matching keywords found. [{}]'.format(str(strftime('%m-%d-%Y %I:%M %p', localtime())))
+		print 'No items matching keywords found. [{}]'.format(str(strftime('%m-%d-%Y %I:%M:%S %p', localtime())))
 	sleep(1)
