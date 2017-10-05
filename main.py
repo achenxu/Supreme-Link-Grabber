@@ -4,6 +4,14 @@ import re
 import webbrowser
 from time import localtime, strftime, sleep, time
 
+def find_between(soup, first, last):
+	try:
+	    start = soup.index( first ) + len( first )
+	    end = soup.index( last, start )
+	    return soup[start:end]
+	except ValueError:
+	    return ''
+
 print '\nSupreme Bot by @DefNotAvg\n'
 
 headers = {
@@ -20,7 +28,7 @@ soup = BeautifulSoup(r.content, 'html.parser')
 
 categories = soup.find_all('a')
 categories = [s.text.encode('utf-8') for s in categories]
-categories = categories[categories.index('new') + 1:categories.index('')]
+categories = categories[categories.index('new') + 1:categories.index('sold out')]
 if categories == []:
 	categories = ['jackets', 'shirts', 'tops/sweaters', 'sweatshirts', 'pants', 'hats', 'bags', 'accessories', 'shoes', 'skate']
 choices = list(range(1,len(categories) + 1))
@@ -47,7 +55,8 @@ if new == 'y':
 	r = requests.get(category_link, headers=headers)
 	soup = BeautifulSoup(r.content, 'html.parser')
 
-	initial_links = re.findall(r'class="name-link" href="(.*?)"', r.content)
+	separator = find_between(r.content, '</a><h1>', '/shop')
+	initial_links = re.findall(separator + r'(.*?)"', r.content)
 	initial_links = ['http://www.supremenewyork.com{}'.format(s) for s in initial_links]
 	initial_links = initial_links[::2]
 	initial_titles = soup.find_all('a')
@@ -60,12 +69,14 @@ if new == 'y':
 else:
 	initial_links = []
 	initial_titles = []
+	r = requests.get(category_link, headers=headers)
+	soup = BeautifulSoup(r.content, 'html.parser')
+	separator = find_between(r.content, '</a><h1>', '/shop')
 
 while matching_titles == []:
 	r = requests.get(category_link, headers=headers)
 	soup = BeautifulSoup(r.content, 'html.parser')
-
-	links = re.findall(r'class="name-link" href="(.*?)"', r.content)
+	links = re.findall(separator + r'(.*?)"', r.content)
 	links = ['http://www.supremenewyork.com{}'.format(s) for s in links]
 	links = links[::2]
 	links = [s for s in links if s not in initial_links]
@@ -79,8 +90,8 @@ while matching_titles == []:
 	for title in titles:
 		if all(keyword in title.lower() for keyword in keywords):
 			matching_titles.append(title)
-	matching_links = [links[titles.index(s)] for s in matching_titles]
 	if matching_titles != []:
+		matching_links = [links[titles.index(s)] for s in matching_titles]
 		print 'Item(s) matching keywords found...\n'
 		for i in range(0,len(matching_titles)):
 			if i != len(matching_titles) - 1:
