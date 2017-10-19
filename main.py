@@ -67,7 +67,10 @@ if new == 'y':
 	initial_links = initial_links[::2]
 	initial_titles = soup.find_all('a')
 	initial_titles = [s.text.encode('utf-8') for s in initial_titles]
-	initial_titles = initial_titles[initial_titles.index(''):]
+	try:
+		initial_titles = initial_titles[initial_titles.index((categories[len(categories)-1]))+1:]
+	except:
+		pass
 	initial_titles = [s for s in initial_titles if s != '' and s != 'sold out']
 	initial_titles = initial_titles[:initial_titles.index('home')]
 	initial_titles = [' - '.join(x) for x in zip(initial_titles[0::2], initial_titles[1::2])]
@@ -88,7 +91,10 @@ while matching_titles == []:
 	links = [s for s in links if s not in initial_links]
 	titles = soup.find_all('a')
 	titles = [s.text.encode('utf-8') for s in titles]
-	titles = titles[titles.index(''):]
+	try:
+		titles = titles[titles.index((categories[len(categories)-1]))+1:]
+	except:
+		pass
 	titles = [s for s in titles if s != '' and s != 'sold out']
 	titles = titles[:titles.index('home')]
 	titles = [' - '.join(x) for x in zip(titles[0::2], titles[1::2])]
