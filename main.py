@@ -11,23 +11,7 @@ def find_between(soup, first, last):
 	except ValueError:
 	    return ''
 
-print '\nSupreme Bot by @DefNotAvg\n'
-
-import requests
-from bs4 import BeautifulSoup
-import re
-import webbrowser
-from time import localtime, strftime, sleep, time
-
-def find_between(soup, first, last):
-	try:
-	    start = soup.index( first ) + len( first )
-	    end = soup.index( last, start )
-	    return soup[start:end]
-	except ValueError:
-	    return ''
-
-print '\nSupreme Bot by @DefNotAvg\n'
+print '\nSupreme Link Grabber by @DefNotAvg\n'
 
 headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
