@@ -5,4 +5,4 @@ Simple script that finds items based on user inputted keywords made to help thos
 * Run main.py and separate keywords with a comma and a space
 * Add the item to your cart and checkout quickly
 
-Requires Python 2.7, requests, and BeautifulSoup
+Requires Python 2.7 and [Requests](http://docs.python-requests.org/en/master/)
