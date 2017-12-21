@@ -1,4 +1,19 @@
 import requests
+import re
+import webbrowser
+from time import localtime, strftime, sleep, time
+
+def find_between(soup, first, last):
+	try:
+	    start = soup.index( first ) + len( first )
+	    end = soup.index( last, start )
+	    return soup[start:end]
+	except ValueError:
+	    return ''
+
+print '\nSupreme Bot by @DefNotAvg\n'
+
+import requests
 from bs4 import BeautifulSoup
 import re
 import webbrowser
@@ -23,19 +38,7 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
 }
 
-r = requests.get('http://www.supremenewyork.com/shop/all', headers=headers)
-soup = BeautifulSoup(r.content, 'html.parser')
-
-categories = soup.find_all('a')
-categories = [s.text.encode('utf-8') for s in categories]
-categories = categories[categories.index('new') + 1:]
-try:
-	categories = categories[:categories.index('sold out')]
-	categories = categories[:categories.index('')]
-except:
-	pass
-if categories == []:
-	categories = ['jackets', 'shirts', 'tops/sweaters', 'sweatshirts', 'pants', 'hats', 'bags', 'accessories', 'shoes', 'skate']
+categories = ['jackets', 'shirts', 'tops/sweaters', 'sweatshirts', 'pants', 'hats', 'bags', 'accessories', 'shoes', 'skate']
 choices = list(range(1,len(categories) + 1))
 
 print 'Choose a category by entering the corresponding number\n'
@@ -51,53 +54,31 @@ else:
 print ''
 new = raw_input('New Items Only? (y/n): ').lower()
 keywords = raw_input('Keyword(s): ').split(',')
-keywords = [x.replace(' ', '') for x in keywords]
+keywords = [x.replace(' ', '').lower() for x in keywords]
 browser = raw_input('Open Link(s) in Browser? (y/n): ').lower()
 print ''
 
 matching_titles = []
 
-if new == 'y':
-	r = requests.get(category_link, headers=headers)
-	soup = BeautifulSoup(r.content, 'html.parser')
+response = requests.get(category_link, headers=headers)
+separator = find_between(response.content, '</a><h1>', '/shop')
 
-	separator = find_between(r.content, '</a><h1>', '/shop')
-	initial_links = re.findall(separator + r'(.*?)"', r.content)
+if new == 'y':
+	initial_links = re.findall(separator + r'(.*?)"', response.content)
 	initial_links = ['http://www.supremenewyork.com{}'.format(s) for s in initial_links]
 	initial_links = initial_links[::2]
-	initial_titles = soup.find_all('a')
-	initial_titles = [s.text.encode('utf-8') for s in initial_titles]
-	try:
-		initial_titles = initial_titles[initial_titles.index((categories[len(categories)-1]))+1:]
-	except:
-		pass
-	initial_titles = [s for s in initial_titles if s != '' and s != 'sold out']
-	initial_titles = initial_titles[:initial_titles.index('home')]
-	initial_titles = [' - '.join(x) for x in zip(initial_titles[0::2], initial_titles[1::2])]
-
+	initial_titles = [find_between(requests.get(initial_link).content, '<title>', '</title>') for initial_link in initial_links]
 else:
 	initial_links = []
 	initial_titles = []
-	r = requests.get(category_link, headers=headers)
-	soup = BeautifulSoup(r.content, 'html.parser')
-	separator = find_between(r.content, '</a><h1>', '/shop')
 
 while matching_titles == []:
-	r = requests.get(category_link, headers=headers)
-	soup = BeautifulSoup(r.content, 'html.parser')
-	links = re.findall(separator + r'(.*?)"', r.content)
+	response = requests.get(category_link, headers=headers)
+	links = re.findall(separator + r'(.*?)"', response.content)
 	links = ['http://www.supremenewyork.com{}'.format(s) for s in links]
 	links = links[::2]
 	links = [s for s in links if s not in initial_links]
-	titles = soup.find_all('a')
-	titles = [s.text.encode('utf-8') for s in titles]
-	try:
-		titles = titles[titles.index((categories[len(categories)-1]))+1:]
-	except:
-		pass
-	titles = [s for s in titles if s != '' and s != 'sold out']
-	titles = titles[:titles.index('home')]
-	titles = [' - '.join(x) for x in zip(titles[0::2], titles[1::2])]
+	titles = [find_between(requests.get(link).content, '<title>', '</title>') for link in links]
 	titles = [s for s in titles if s not in initial_titles]
 	for title in titles:
 		if all(keyword in title.lower() for keyword in keywords):
