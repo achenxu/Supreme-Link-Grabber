@@ -64,7 +64,6 @@ def main():
 		links = links[::2]
 		links = [s for s in links if s not in initial_links]
 		titles = [find_between(requests.get(link).content, '<title>', '</title>') for link in links]
-		titles = [s for s in titles if s not in initial_titles]
 		for title in titles:
 			if all(keyword in title.lower() for keyword in keywords):
 				matching_titles.append(title)
@@ -81,6 +80,7 @@ def main():
 					webbrowser.open(matching_links[i])
 		else:
 			print 'No items matching keywords found. [{}]'.format(str(strftime('%m-%d-%Y %I:%M:%S %p', localtime())))
+		initial_links = links
 		sleep(1)
 
 while True:
