@@ -3,6 +3,8 @@ import re
 import webbrowser
 from time import localtime, strftime, sleep, time
 
+DELAY = 1 # Delay in seconds between each "refresh" of the category page
+
 def find_between(soup, first, last):
 	try:
 	    start = soup.index( first ) + len( first )
@@ -11,7 +13,7 @@ def find_between(soup, first, last):
 	except ValueError:
 	    return ''
 
-def main():
+def config():
 	print '\nSupreme Link Grabber by @DefNotAvg\n'
 
 	headers = {
@@ -39,36 +41,34 @@ def main():
 	print ''
 	new = raw_input('New Items Only? (y/n): ').lower()
 	keywords = raw_input('Keyword(s): ').split(',')
-	keywords = [x.replace(' ', '').lower() for x in keywords]
+	keywords = [keyword.replace(' ', '').lower() for keyword in keywords]
 	browser = raw_input('Open Link(s) in Browser? (y/n): ').lower()
 	print ''
 
+	main(headers, category_link, new, keywords, browser)
+
+def main(headers, category_link, new, keywords, browser):
 	matching_titles = []
 
-	response = requests.get(category_link, headers=headers)
-	separator = find_between(response.content, '</a><h1>', '/shop')
-
 	if new == 'y':
-		initial_links = re.findall(separator + r'(.*?)"', response.content)
-		initial_links = ['http://www.supremenewyork.com{}'.format(s) for s in initial_links]
-		initial_links = initial_links[::2]
-		initial_titles = [find_between(requests.get(initial_link).content, '<title>', '</title>') for initial_link in initial_links]
+		response = requests.get(category_link, headers=headers)
+		initial_links = re.findall(r'href="(.*?)"', response.content)
+		initial_links = ['http://www.supremenewyork.com{}'.format(initial_link) for initial_link in initial_links if initial_link.count('/') == 4 and '//' not in initial_link]
+		initial_links = list(set(initial_links))
 	else:
 		initial_links = []
-		initial_titles = []
 
 	while matching_titles == []:
 		response = requests.get(category_link, headers=headers)
-		links = re.findall(separator + r'(.*?)"', response.content)
-		links = ['http://www.supremenewyork.com{}'.format(s) for s in links]
-		links = links[::2]
-		links = [s for s in links if s not in initial_links]
+		links = re.findall(r'href="(.*?)"', response.content)
+		links = ['http://www.supremenewyork.com{}'.format(link) for link in links if link.count('/') == 4 and '//' not in link and link not in initial_links]
+		links = list(set(links))
 		titles = [find_between(requests.get(link).content, '<title>', '</title>') for link in links]
 		for title in titles:
 			if all(keyword in title.lower() for keyword in keywords):
 				matching_titles.append(title)
 		if matching_titles != []:
-			matching_links = [links[titles.index(s)] for s in matching_titles]
+			matching_links = [links[titles.index(matching_title)] for matching_title in matching_titles]
 			print 'Item(s) matching keywords found...\n'
 			for i in range(0,len(matching_titles)):
 				if i != len(matching_titles) - 1:
@@ -80,9 +80,9 @@ def main():
 					webbrowser.open(matching_links[i])
 		else:
 			print 'No items matching keywords found. [{}]'.format(str(strftime('%m-%d-%Y %I:%M:%S %p', localtime())))
-		initial_links = links
-		sleep(1)
+		initial_links = initial_links + links
+		sleep(DELAY)
 
 while True:
-	main()
+	config()
 	raw_input('\nHit enter to run again')
