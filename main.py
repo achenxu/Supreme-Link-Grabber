@@ -25,7 +25,14 @@ def config():
 	    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
 	}
 
-	categories = ['jackets', 'shirts', 'tops/sweaters', 'sweatshirts', 'pants', 'hats', 'bags', 'accessories', 'shoes', 'skate']
+	response = requests.get('https://www.supremenewyork.com/shop/all', headers=headers)
+
+	categories = re.findall(r'href="/(.*?)"', response.content)
+	categories = [category.split('/')[len(category.split('/')) - 1] for category in categories if 'shop/all' in category or 'shop/new' in category]
+
+	if categories == []:
+		categories = ['all', 'new', 'jackets', 'shirts', 'tops/sweaters', 'sweatshirts', 'pants', 't-shirts', 'hats', 'bags', 'accessories', 'shoes', 'skate']
+	
 	choices = list(range(1,len(categories) + 1))
 
 	print 'Choose a category by entering the corresponding number\n'
@@ -35,9 +42,10 @@ def config():
 	category = categories[int(raw_input('\nChoice: ')) - 1]
 	if category == 'tops/sweaters':
 		category = category.replace('/', '_')
-		category_link = 'http://www.supremenewyork.com/shop/all/{}'.format(category)
+	if category == 'all':
+		category_link = 'https://www.supremenewyork.com/shop/all'
 	else:
-		category_link = 'http://www.supremenewyork.com/shop/all/{}'.format(category)
+		category_link = 'https://www.supremenewyork.com/shop/all/{}'.format(category)
 	print ''
 	new = raw_input('New Items Only? (y/n): ').lower()
 	keywords = raw_input('Keyword(s): ').split(',')
@@ -53,7 +61,7 @@ def main(headers, category_link, new, keywords, browser):
 	if new == 'y':
 		response = requests.get(category_link, headers=headers)
 		initial_links = re.findall(r'href="(.*?)"', response.content)
-		initial_links = ['http://www.supremenewyork.com{}'.format(initial_link) for initial_link in initial_links if initial_link.count('/') == 4 and '//' not in initial_link]
+		initial_links = ['https://www.supremenewyork.com{}'.format(initial_link) for initial_link in initial_links if initial_link.count('/') == 4 and '//' not in initial_link]
 		initial_links = list(set(initial_links))
 	else:
 		initial_links = []
@@ -61,7 +69,7 @@ def main(headers, category_link, new, keywords, browser):
 	while matching_titles == []:
 		response = requests.get(category_link, headers=headers)
 		links = re.findall(r'href="(.*?)"', response.content)
-		links = ['http://www.supremenewyork.com{}'.format(link) for link in links if link.count('/') == 4 and '//' not in link and link not in initial_links]
+		links = ['https://www.supremenewyork.com{}'.format(link) for link in links if link.count('/') == 4 and '//' not in link and link not in initial_links]
 		links = list(set(links))
 		titles = [find_between(requests.get(link).content, '<title>', '</title>') for link in links]
 		for title in titles:
