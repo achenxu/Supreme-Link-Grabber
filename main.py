@@ -49,13 +49,15 @@ def config():
 	print ''
 	new = raw_input('New Items Only? (y/n): ').lower()
 	keywords = raw_input('Keyword(s): ').split(',')
-	keywords = [keyword.replace(' ', '').lower() for keyword in keywords]
+	keywords = [keyword.replace(' ', '').lower() for keyword in keywords if keyword.replace(' ', '') != '']
+	negative_keywords = raw_input('Negative Keyword(s): ').split(',')
+	negative_keywords = [negative_keyword.replace(' ', '').lower() for negative_keyword in negative_keywords if negative_keyword.replace(' ', '') != '']
 	browser = raw_input('Open Link(s) in Browser? (y/n): ').lower()
 	print ''
 
-	main(headers, category_link, new, keywords, browser)
+	main(headers, category_link, new, keywords, negative_keywords, browser)
 
-def main(headers, category_link, new, keywords, browser):
+def main(headers, category_link, new, keywords, negative_keywords, browser):
 	matching_titles = []
 
 	if new == 'y':
@@ -71,10 +73,11 @@ def main(headers, category_link, new, keywords, browser):
 		links = re.findall(r'href="(.*?)"', response.content)
 		links = ['https://www.supremenewyork.com{}'.format(link) for link in links if link.count('/') == 4 and '//' not in link and link not in initial_links]
 		links = list(set(links))
-		titles = [find_between(requests.get(link).content, '<title>', '</title>') for link in links]
+		titles = [find_between(requests.get(link).content, '<title>', '</title>').replace('Supreme: ', '') for link in links]
 		for title in titles:
 			if all(keyword in title.lower() for keyword in keywords):
-				matching_titles.append(title)
+				if all(negative_keyword not in title.lower() for negative_keyword in negative_keywords):
+					matching_titles.append(title)
 		if matching_titles != []:
 			matching_links = [links[titles.index(matching_title)] for matching_title in matching_titles]
 			print 'Item(s) matching keywords found...\n'
